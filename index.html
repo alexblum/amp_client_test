@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>amp_client</title>
+    <link rel="stylesheet" href="./resources/css/pure.css" />
+    <link rel="stylesheet" href="./resources/css/pure-button.css" />
+    <link rel="stylesheet" href="./resources/css/pure-tables.css" />
+    <link rel="stylesheet" href="./resources/css/pure-forms.css" />
+  </head>
+  <body style="padding: 10px">
+
+    <div class="pure-form pure-form-stacked">
+      <fieldset>
+        <legend><strong>amp_client - send request</strong></legend>
+
+        <label for="user">user</label>
+        <input id="user" type="text"></input>
+
+	<label for="password">user</label>
+        <input id="password" type="text"></input>
+
+	<label for="salt">salt</label>
+	<input id="salt" type="text" value="amp_server_rocks_"></input>
+
+	<label for="method">method</label>
+	<input id="method" type="text" value="getDatabaseStats"></input>
+
+	<label for="payload">payload</label>
+        <textarea id="payload" type="text">{"hello":"world"}</textarea>
+      </fieldset>
+
+      <button class="pure-button pure-button-primary" onclick="post();">POST</button>
+    </div>
+
+    <script type="text/javascript" src="./resources/js/crypto.js"></script>
+
+    <script type="text/javascript">
+      function post() {
+        var user = byId('user').value;
+	var password = byId('password').value;
+	var salt = byId('salt').value;
+	var method = byId('method').value;
+	var payload = byId('payload').value;
+	var timestamp = new Date().getTime();
+
+        sha256(password).then(function(hashedPassword) {
+	  var unhashed = salt + user + timestamp + method + payload + hashedPassword;
+
+	  sha256(unhashed).then(function(hash) {
+	    var request = {};
+            request.user = user;
+	    request.method = method;
+	    request.payload = payload;
+	    request.timestamp = timestamp;
+	    request.hash = hash;
+
+	    var json = JSON.stringify(request);
+
+	    var httpRequest = new XMLHttpRequest();
+	    httpRequest.open("POST", "http://localhost:1337/rest/interface", false);
+	    httpRequest.setRequestHeader("Content-type","application/json");
+	    httpRequest.send(json);
+
+	    alert(httpRequest.responseText);
+
+	  });
+
+	});
+
+      }
+
+      function byId(id) {
+       return document.getElementById(id);
+      }
+    </script>
+
+  </body>
+</html>
